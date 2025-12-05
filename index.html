@@ -26,7 +26,7 @@
 
     <div id="loadingOverlay">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
-        <p class="text-gray-600 font-semibold" id="loadingText">กำลังเชื่อมต่อฐานข้อมูล...</p>
+        <p class="text-gray-600 font-semibold" id="loadingText">Loading...</p>
     </div>
 
     <div id="mainContainer" class="w-full max-w-lg bg-white shadow-xl rounded-b-xl overflow-hidden mt-0 sm:mt-6 sm:rounded-xl hidden">
@@ -35,22 +35,22 @@
             <h1 class="text-xl font-bold mb-1 relative z-10" id="objText">Loading...</h1>
             <p class="text-sm opacity-90 relative z-10" id="subHeader">Push Order System</p>
             
-            <div class="mt-4 flex items-center justify-center space-x-2 text-sm bg-white/10 p-2 rounded-lg backdrop-blur-sm relative z-10">
-                <span>⏰ เหลือเวลา:</span>
-                <span id="countdownTimer" class="font-bold font-mono text-yellow-300 tracking-wide text-lg">--:--:--</span>
+            <div class="mt-4 flex items-center justify-center space-x-2 text-sm bg-white/30 p-2 rounded-lg backdrop-blur-sm relative z-10">
+                <span>⏱️ Time Remaining :</span>
+                <span id="countdownTimer" class="font-bold text-yellow-300 tracking-wide">--:--:--</span>
             </div>
             
             <svg class="absolute -bottom-4 -right-4 w-32 h-32 text-white opacity-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
         </div>
 
-        <div class="px-6 py-4 bg-red-50 border-b border-red-100 space-y-3">
+        <div class="px-6 py-2 bg-red-50 border-b border-red-100 space-y-3">
             <div>
                 <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Product / สินค้า</span>
                 <p class="text-gray-800 font-medium text-lg leading-tight" id="prodText">-</p>
             </div>
             <div class="flex justify-between items-start">
                 <div>
-                    <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Limit / โควต้ารวม</span>
+                    <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Quota Limit / โควต้ารวม</span>
                     <p class="text-gray-800 font-bold" id="limitText">-</p>
                 </div>
                 <div class="text-right">
@@ -64,10 +64,10 @@
             <form id="orderForm" onsubmit="handleFormSubmit(event)">
                 
                 <div class="form-group">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">เลือกสาขาของคุณ</label>
+                    <label class="block text-red-500 text-sm font-bold mb-2">Select Store / เลือกสาขา</label>
                     <div class="relative">
                         <select id="storeSelect" class="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
-                            <option value="" disabled selected>-- กำลังโหลดรายชื่อ --</option>
+                            <option value="" disabled selected>Loading...</option>
                         </select>
                     </div>
                 </div>
@@ -75,31 +75,31 @@
                 <div id="storeConfirmBox" class="hidden bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center mb-4 animate-fade-in">
                     <div class="bg-blue-200 rounded-full h-10 w-10 flex items-center justify-center text-blue-700 font-bold mr-3 shrink-0" id="displayCode"></div>
                     <div>
-                        <p class="text-xs text-blue-600 font-semibold">ยอดปัจจุบันที่บันทึกไว้:</p>
+                        <p class="text-xs text-blue-600 font-semibold">Current Order:</p>
                         <p class="font-bold text-gray-800 text-lg"><span id="currentQty">0</span> <span class="text-xs font-normal text-gray-500">DU/Inner</span></p>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">ระบุจำนวนที่ต้องการสั่งเพิ่ม (DU/Inner)</label>
+                    <label class="block text-red-500 text-sm font-bold mb-2">Push Oder / ระบุจำนวน (DU/Inner)</label>
                     <input type="number" id="orderQty" min="0" required class="w-full border border-gray-300 rounded py-3 px-4 text-gray-700 text-2xl font-bold text-center focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 placeholder-gray-300" placeholder="0">
                     <p class="text-center text-sm text-gray-500 mt-2 bg-gray-100 py-1 rounded" id="unitHelperText"></p>
                 </div>
 
                 <div class="form-group">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">หมายเหตุ (Remark)</label>
-                    <input type="text" id="orderRemark" class="w-full border border-gray-300 rounded py-2 px-4 text-gray-700 focus:outline-none focus:border-red-500" placeholder="ระบุชื่อผู้ติดต่อ หรือข้อความเพิ่มเติม...">
+                    <label class="block text-red-500 text-sm font-bold mb-2">Remark / หมายเหตุ</label>
+                    <input type="text" id="orderRemark" class="w-full border border-gray-300 rounded py-2 px-4 text-gray-700 focus:outline-none focus:border-red-500" placeholder="ระบุชื่อผู้ดำเนินการ หรือข้อความเพิ่มเติม...">
                 </div>
 
                 <button type="submit" id="submitBtn" class="w-full theme-red hover:bg-red-700 text-white font-bold py-4 px-4 rounded shadow-lg transform transition active:scale-95 duration-200 mt-4 flex justify-center items-center">
-                    <span>ยืนยันการบันทึกยอด</span>
+                    <span>SUBMIT</span>
                 </button>
             </form>
         </div>
 
         <div class="bg-gray-50 border-t border-gray-200">
             <div class="px-6 py-3 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick="toggleLogs()">
-                <h3 class="text-sm font-bold text-gray-600">🕒 ประวัติการบันทึก (Real-time Log)</h3>
+                <h3 class="text-sm font-bold text-red-500">Push Order History.</h3>
                 <svg id="logArrow" class="w-4 h-4 text-gray-400 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </div>
             <div id="logContainer" class="max-h-60 overflow-y-auto">
@@ -114,7 +114,7 @@
                     <tbody id="logTableBody" class="divide-y divide-gray-100">
                         </tbody>
                 </table>
-                <p id="noLogText" class="text-center text-gray-400 py-4 text-xs">ยังไม่มีรายการบันทึก</p>
+                <p id="noLogText" class="text-center text-gray-400 py-4 text-xs">No Data</p>
             </div>
         </div>
         
@@ -124,7 +124,7 @@
          <p class="text-xs text-gray-400 flex justify-center items-center gap-2">
             © 2025 Push Order App
             <span class="text-gray-300">|</span>
-            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.7</span>
+            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.8</span>
          </p>
     </footer>
 
@@ -133,7 +133,7 @@
             <div id="alertIcon" class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4"></div>
             <h3 class="text-lg leading-6 font-bold text-gray-900" id="alertTitle"></h3>
             <p class="text-sm text-gray-500 mt-2" id="alertMessage"></p>
-            <button onclick="closeModal()" class="mt-5 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-white hover:bg-gray-900 focus:outline-none font-medium">ตกลง</button>
+            <button onclick="closeModal()" class="mt-5 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-white hover:bg-gray-900 focus:outline-none font-medium">OK</button>
         </div>
     </div>
 
@@ -192,7 +192,7 @@
             
             document.getElementById('objText').textContent = h.title;
             document.getElementById('prodText').textContent = h.product;
-            document.getElementById('limitText').textContent = h.totalLimit ? h.totalLimit.toLocaleString() : "ไม่จำกัด";
+            document.getElementById('limitText').textContent = h.totalLimit ? h.totalLimit.toLocaleString() : "No Limit";
             
             // Show Unit Helper
             const unitText = h.unit || "-";
@@ -203,7 +203,7 @@
                 deadlineDate = parseDate(h.deadline);
                 startCountdown();
             } else {
-                document.getElementById('countdownTimer').textContent = "ไม่มีกำหนด";
+                document.getElementById('countdownTimer').textContent = "No time limit";
             }
 
             // Process Data
@@ -211,7 +211,7 @@
 
             // Populate Dropdown
             const select = document.getElementById('storeSelect');
-            select.innerHTML = '<option value="" disabled selected>-- เลือกสาขา --</option>';
+            select.innerHTML = '<option value="" disabled selected>-- Please Select Store --</option>';
             data.stores.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.code;
@@ -280,21 +280,30 @@
         function startCountdown() {
             const timerEl = document.getElementById('countdownTimer');
             
+            // 🔥 NEW: ตรวจสอบว่า deadlineDate เป็น Date Object ที่ถูกต้องหรือไม่
+            if (!deadlineDate || isNaN(deadlineDate.getTime())) {
+                timerEl.textContent = "Date / Time Wrong Format";
+                timerEl.className = "text-yellow-300 tracking-wide";
+                document.getElementById('statusText').textContent = "ERROR";
+                document.getElementById('statusText').className = "text-red-600";
+                return; // หยุดทำงานถ้า Date ไม่ถูกต้อง
+            }
+
             const timerInterval = setInterval(() => {
                 const now = new Date().getTime();
                 const distance = deadlineDate.getTime() - now;
 
                 if (distance < 0) {
                     clearInterval(timerInterval);
-                    timerEl.textContent = "EXPIRED";
-                    timerEl.className = "font-bold font-mono text-white tracking-wide text-lg";
+                    timerEl.textContent = "CLOSED";
+                    timerEl.className = "text-yellow-300 tracking-wide";
                     document.getElementById('statusText').textContent = "Closed";
                     document.getElementById('statusText').className = "text-red-600 font-bold";
                     
                     isExpired = true;
                     document.getElementById('submitBtn').disabled = true;
                     document.getElementById('submitBtn').classList.add('bg-gray-400', 'cursor-not-allowed');
-                    document.getElementById('submitBtn').innerHTML = 'หมดเวลาบันทึก';
+                    document.getElementById('submitBtn').innerHTML = 'CLOSED';
                     return;
                 }
 
@@ -321,7 +330,7 @@
             const newQty = parseInt(document.getElementById('orderQty').value) || 0;
             const remark = document.getElementById('orderRemark').value;
         
-            if (!storeCode) { showAlert("แจ้งเตือน", "กรุณาเลือกสาขา", false); return; }
+            if (!storeCode) { showAlert("Warning", "Please Select Store", false); return; }
         
             // ตรวจสอบ Total Limit (เหมือนเดิม)
             const limit = globalData.header.totalLimit;
@@ -330,8 +339,8 @@
             const projectedTotal = (currentTotalAllStores - oldQty) + newQty;
         
             if (limit && projectedTotal > limit) {
-                showAlert("ยอดเกินกำหนด (Over Limit)", 
-                    `ยอดรวมทั้งหมดจะกลายเป็น ${projectedTotal.toLocaleString()} ซึ่งเกินโควต้า (${limit.toLocaleString()})`, 
+                showAlert("Limit Exceeded", 
+                    `The total order will become ${projectedTotal.toLocaleString()} which exceeds the quota ${limit.toLocaleString()}`, 
                     false);
                 return;
             }
