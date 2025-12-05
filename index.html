@@ -191,7 +191,7 @@
 
             // Countdown Timer
             if (h.deadline) {
-                deadlineDate = new Date(h.deadline);
+                deadlineDate = parseDate(h.deadline);
                 startCountdown();
             } else {
                 document.getElementById('countdownTimer').textContent = "ไม่มีกำหนด";
@@ -412,14 +412,34 @@
             }
         }
         
+        // Helper สำหรับแปลงวันที่ string (DD/MM/YYYY HH:mm) เป็น Date object
         function parseDate(dateStr) {
-            if(!dateStr) return new Date(0);
+            if (!dateStr) return null;
             try {
-                const parts = dateStr.split(' ');
-                const dateParts = parts[0].split('/');
-                const timeParts = parts[1].split(':');
-                return new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1]);
-            } catch(e) { return new Date(); }
+                // รองรับกรณี Date Object มาอยู่แล้ว (เผื่อไว้)
+                if (dateStr instanceof Date) return dateStr;
+                
+                // แยกวันที่และเวลา "15/12/2025 17:30:00"
+                const parts = dateStr.toString().trim().split(' ');
+                if (parts.length < 2) return new Date(dateStr); // กรณีมาแต่วันที่
+    
+                const dateParts = parts[0].split('/'); // [15, 12, 2025]
+                const timeParts = parts[1].split(':'); // [17, 30]
+    
+                // สร้าง Date Object (Year, Month-1, Day, Hour, Min, Sec)
+                // ต้องลบเดือนออก 1 เสมอ เพราะ JS นับเดือนเริ่มที่ 0 (ม.ค.)
+                return new Date(
+                    parseInt(dateParts[2]), 
+                    parseInt(dateParts[1]) - 1, 
+                    parseInt(dateParts[0]), 
+                    parseInt(timeParts[0]), 
+                    parseInt(timeParts[1]), 
+                    timeParts[2] ? parseInt(timeParts[2]) : 0
+                );
+            } catch (e) {
+                console.error("Parse Date Error:", e);
+                return new Date(); // Fallback กัน Error
+            }
         }
     </script>
 </body>
