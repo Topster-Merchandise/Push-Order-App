@@ -19,14 +19,6 @@
             transition: opacity 0.3s ease-out;
         }
         .hidden-loader { opacity: 0; pointer-events: none; }
-        
-        /* Countdown Box */
-        .countdown-box {
-            background: rgba(0,0,0,0.2);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-variant-numeric: tabular-nums;
-        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center pb-10">
@@ -111,6 +103,13 @@
             </div>
             <div id="logContainer" class="max-h-60 overflow-y-auto">
                 <table class="min-w-full text-xs text-left">
+                    <thead class="bg-gray-100 text-gray-500 font-semibold border-b border-gray-200 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-6 py-2 text-left">Store</th>
+                            <th class="px-6 py-2 text-right">Push Order</th>
+                            <th class="px-6 py-2 text-right">Date/Time</th>
+                        </tr>
+                    </thead>
                     <tbody id="logTableBody" class="divide-y divide-gray-100">
                         </tbody>
                 </table>
@@ -131,7 +130,6 @@
 
     <script>
         // --- CONFIGURATION ---
-        // URL API ของคุณ (แก้เรียบร้อย)
         const API_URL = 'https://script.google.com/macros/s/AKfycbx4Hf_kbC8Ezp3CwBH1bqJZRPENXQQWfzWe5LXPsRb_C4BappyAgBvo1Ga-FH44fnYosw/exec';
         
         // --- GLOBAL STATE ---
@@ -146,7 +144,7 @@
             const urlPushID = urlParams.get('pushOrderID');
 
             if (!urlPushID) {
-                showFatalError("Push Order นี้จบไปแล้ว", "กรุณาตรวจสอบลิงก์อีกครั้ง หรือติดต่อจัดซื้อ");
+                showFatalError("Push Order นี้จบแล้ว", "กรุณาติดต่อจัดซื้อ");
                 return;
             }
 
@@ -187,7 +185,7 @@
             document.getElementById('prodText').textContent = h.product;
             document.getElementById('limitText').textContent = h.totalLimit ? h.totalLimit.toLocaleString() : "ไม่จำกัด";
             
-            // 🔥 แสดง Unit ตรงใต้ช่องกรอก โดยไม่คำนวณ
+            // Show Unit Helper
             const unitText = h.unit || "-";
             document.getElementById('unitHelperText').innerHTML = `ℹ️ 1 DU/Inner = <b>${unitText}</b>`;
 
