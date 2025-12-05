@@ -124,7 +124,7 @@
          <p class="text-xs text-gray-400 flex justify-center items-center gap-2">
             © 2025 Push Order App
             <span class="text-gray-300">|</span>
-            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.4</span>
+            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.5</span>
          </p>
     </footer>
 
@@ -311,37 +311,40 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             
+            // ตรวจสอบ Deadline (เหมือนเดิม)
             if (isExpired || (deadlineDate && new Date() > deadlineDate)) {
                 showAlert("หมดเวลา", "ไม่สามารถบันทึกได้เนื่องจากเกินกำหนดเวลาแล้ว", false);
                 return;
             }
-
+        
             const storeCode = document.getElementById('storeSelect').value;
             const newQty = parseInt(document.getElementById('orderQty').value) || 0;
             const remark = document.getElementById('orderRemark').value;
-
+        
             if (!storeCode) { showAlert("แจ้งเตือน", "กรุณาเลือกสาขา", false); return; }
-
-            // ตรวจสอบ Total Limit
+        
+            // ตรวจสอบ Total Limit (เหมือนเดิม)
             const limit = globalData.header.totalLimit;
             const oldStoreData = globalData.stores.find(s => s.code === storeCode);
             const oldQty = oldStoreData ? (parseInt(oldStoreData.qty) || 0) : 0;
             const projectedTotal = (currentTotalAllStores - oldQty) + newQty;
-
+        
             if (limit && projectedTotal > limit) {
                 showAlert("ยอดเกินกำหนด (Over Limit)", 
                     `ยอดรวมทั้งหมดจะกลายเป็น ${projectedTotal.toLocaleString()} ซึ่งเกินโควต้า (${limit.toLocaleString()})`, 
                     false);
                 return;
             }
-
+        
             const btn = document.getElementById('submitBtn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `กำลังบันทึก...`;
-
+            
+            // 🔥 แก้ตรงนี้: ใส่ SVG Spinner กลับเข้าไป
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังบันทึก...`;
+        
             const payload = { storeCode, qty: newQty, remark };
-
+        
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
@@ -349,10 +352,10 @@
                 });
                 
                 const result = await res.json();
-
+        
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-
+        
                 if (result.status === 'success') {
                     showAlert("สำเร็จ", `บันทึกสาขา ${storeCode} จำนวน ${newQty} เรียบร้อย`, true);
                     
@@ -364,13 +367,13 @@
                     
                     processStoreData(globalData.stores);
                     document.getElementById('currentQty').textContent = newQty;
-
+        
                 } else if (result.status === 'busy') {
-                     showAlert("ระบบยุ่ง", result.message, false);
+                    showAlert("ระบบยุ่ง", result.message, false);
                 } else {
-                     throw new Error(result.message);
+                    throw new Error(result.message);
                 }
-
+        
             } catch (err) {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
