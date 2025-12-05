@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push Order App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+        .theme-red { background-color: #D93025; }
+        
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98); z-index: 50;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 0.3s ease-out;
+        }
+        .hidden-loader { opacity: 0; pointer-events: none; }
+        
+        /* Countdown Box */
+        .countdown-box {
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center pb-10">
+
+    <div id="loadingOverlay">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+        <p class="text-gray-600 font-semibold" id="loadingText">กำลังเชื่อมต่อฐานข้อมูล...</p>
+    </div>
+
+    <div id="mainContainer" class="w-full max-w-lg bg-white shadow-xl rounded-b-xl overflow-hidden mt-0 sm:mt-6 sm:rounded-xl hidden">
+        
+        <div class="theme-red text-white p-6 relative overflow-hidden">
+            <h1 class="text-xl font-bold mb-1 relative z-10" id="objText">Loading...</h1>
+            <p class="text-sm opacity-90 relative z-10" id="subHeader">Push Order System</p>
+            
+            <div class="mt-4 flex items-center justify-center space-x-2 text-sm bg-white/10 p-2 rounded-lg backdrop-blur-sm relative z-10">
+                <span>⏰ เหลือเวลา:</span>
+                <span id="countdownTimer" class="font-bold font-mono text-yellow-300 tracking-wide text-lg">--:--:--</span>
+            </div>
+            
+            <svg class="absolute -bottom-4 -right-4 w-32 h-32 text-white opacity-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+        </div>
+
+        <div class="px-6 py-4 bg-red-50 border-b border-red-100 space-y-3">
+            <div>
+                <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Product / สินค้า</span>
+                <p class="text-gray-800 font-medium text-lg leading-tight" id="prodText">-</p>
+            </div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Limit / โควต้ารวม</span>
+                    <p class="text-gray-800 font-bold" id="limitText">-</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Status</span>
+                    <p class="text-green-600 font-bold" id="statusText">Open</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <form id="orderForm" onsubmit="handleFormSubmit(event)">
+                
+                <div class="form-group">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">เลือกสาขาของคุณ</label>
+                    <div class="relative">
+                        <select id="storeSelect" class="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                            <option value="" disabled selected>-- กำลังโหลดรายชื่อ --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="storeConfirmBox" class="hidden bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center mb-4 animate-fade-in">
+                    <div class="bg-blue-200 rounded-full h-10 w-10 flex items-center justify-center text-blue-700 font-bold mr-3 shrink-0" id="displayCode"></div>
+                    <div>
+                        <p class="text-xs text-blue-600 font-semibold">ยอดปัจจุบันที่บันทึกไว้:</p>
+                        <p class="font-bold text-gray-800 text-lg"><span id="currentQty">0</span> <span class="text-xs font-normal text-gray-500">DU/Inner</span></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">ระบุจำนวนที่ต้องการสั่งเพิ่ม (DU/Inner)</label>
+                    <input type="number" id="orderQty" min="0" required class="w-full border border-gray-300 rounded py-3 px-4 text-gray-700 text-2xl font-bold text-center focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 placeholder-gray-300" placeholder="0">
+                    <p class="text-center text-sm text-gray-500 mt-2 bg-gray-100 py-1 rounded" id="unitHelperText"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">หมายเหตุ (Remark)</label>
+                    <input type="text" id="orderRemark" class="w-full border border-gray-300 rounded py-2 px-4 text-gray-700 focus:outline-none focus:border-red-500" placeholder="ระบุชื่อผู้ติดต่อ หรือข้อความเพิ่มเติม...">
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full theme-red hover:bg-red-700 text-white font-bold py-4 px-4 rounded shadow-lg transform transition active:scale-95 duration-200 mt-4 flex justify-center items-center">
+                    <span>ยืนยันการบันทึกยอด</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-gray-50 border-t border-gray-200">
+            <div class="px-6 py-3 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick="toggleLogs()">
+                <h3 class="text-sm font-bold text-gray-600">🕒 ประวัติการบันทึก (Real-time Log)</h3>
+                <svg id="logArrow" class="w-4 h-4 text-gray-400 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </div>
+            <div id="logContainer" class="max-h-60 overflow-y-auto">
+                <table class="min-w-full text-xs text-left">
+                    <tbody id="logTableBody" class="divide-y divide-gray-100">
+                        </tbody>
+                </table>
+                <p id="noLogText" class="text-center text-gray-400 py-4 text-xs">ยังไม่มีรายการบันทึก</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="alertModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-xs w-full text-center transform transition-all scale-100">
+            <div id="alertIcon" class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4"></div>
+            <h3 class="text-lg leading-6 font-bold text-gray-900" id="alertTitle"></h3>
+            <p class="text-sm text-gray-500 mt-2" id="alertMessage"></p>
+            <button onclick="closeModal()" class="mt-5 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-800 text-white hover:bg-gray-900 focus:outline-none font-medium">ตกลง</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // URL API ของคุณ (แก้เรียบร้อย)
+        const API_URL = 'https://script.google.com/macros/s/AKfycbx4Hf_kbC8Ezp3CwBH1bqJZRPENXQQWfzWe5LXPsRb_C4BappyAgBvo1Ga-FH44fnYosw/exec';
+        
+        // --- GLOBAL STATE ---
+        let globalData = null;
+        let deadlineDate = null;
+        let isExpired = false;
+        let currentTotalAllStores = 0;
+
+        // --- 1. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlPushID = urlParams.get('pushOrderID');
+
+            if (!urlPushID) {
+                showFatalError("ไม่พบรหัสงาน (Push Order ID)", "กรุณาตรวจสอบลิงก์อีกครั้ง หรือติดต่อ Admin");
+                return;
+            }
+
+            fetchData(urlPushID);
+        });
+
+        async function fetchData(urlPushID) {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                if (data.status !== 'success') throw new Error(data.message);
+
+                globalData = data;
+                
+                // ตรวจสอบ Push Order ID
+                const sheetPushID = data.header.pushOrderId || ""; 
+                if (sheetPushID !== "" && String(sheetPushID).trim() !== String(urlPushID).trim()) {
+                    showFatalError("ลิงก์ไม่ถูกต้อง", "Push Order ID ไม่ตรงกับในระบบ งานนี้อาจจบไปแล้วหรือลิงก์ผิด");
+                    return;
+                }
+
+                renderSystem(data);
+
+            } catch (error) {
+                showFatalError("เกิดข้อผิดพลาด", "ไม่สามารถดึงข้อมูลได้: " + error.message);
+            }
+        }
+
+        // --- 2. RENDER UI ---
+        function renderSystem(data) {
+            document.getElementById('loadingOverlay').classList.add('hidden-loader');
+            document.getElementById('mainContainer').classList.remove('hidden');
+
+            const h = data.header;
+            
+            document.getElementById('objText').textContent = h.title;
+            document.getElementById('prodText').textContent = h.product;
+            document.getElementById('limitText').textContent = h.totalLimit ? h.totalLimit.toLocaleString() : "ไม่จำกัด";
+            
+            // 🔥 แสดง Unit ตรงใต้ช่องกรอก โดยไม่คำนวณ
+            const unitText = h.unit || "-";
+            document.getElementById('unitHelperText').innerHTML = `ℹ️ 1 DU/Inner = <b>${unitText}</b>`;
+
+            // Countdown Timer
+            if (h.deadline) {
+                deadlineDate = new Date(h.deadline);
+                startCountdown();
+            } else {
+                document.getElementById('countdownTimer').textContent = "ไม่มีกำหนด";
+            }
+
+            // Process Data
+            processStoreData(data.stores);
+
+            // Populate Dropdown
+            const select = document.getElementById('storeSelect');
+            select.innerHTML = '<option value="" disabled selected>-- เลือกสาขา --</option>';
+            data.stores.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.code;
+                opt.textContent = `${s.code} - ${s.name}`;
+                select.appendChild(opt);
+            });
+
+            select.addEventListener('change', onStoreSelect);
+        }
+
+        function processStoreData(stores) {
+            currentTotalAllStores = 0;
+            const logs = [];
+
+            stores.forEach(s => {
+                if (s.qty) currentTotalAllStores += Number(s.qty);
+                if (s.lastUpdate && s.qty !== "") logs.push(s);
+            });
+
+            // เรียง Log ล่าสุดขึ้นก่อน
+            logs.sort((a, b) => parseDate(b.lastUpdate) - parseDate(a.lastUpdate));
+
+            renderLogs(logs);
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('logTableBody');
+            const noLog = document.getElementById('noLogText');
+            tbody.innerHTML = '';
+
+            if (logs.length === 0) {
+                noLog.style.display = 'block';
+                return;
+            }
+            noLog.style.display = 'none';
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 border-b border-gray-100 last:border-0 transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-3 font-medium text-gray-800">${log.code} - ${log.name}</td>
+                    <td class="px-6 py-3 text-right font-bold text-red-600">${log.qty}</td>
+                    <td class="px-6 py-3 text-gray-500 text-right">${log.lastUpdate.split(' ')[1]}<br><span class="text-[10px]">${log.lastUpdate.split(' ')[0]}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function onStoreSelect() {
+            const code = this.value;
+            const store = globalData.stores.find(s => s.code === code);
+            
+            if (store) {
+                const confirmBox = document.getElementById('storeConfirmBox');
+                confirmBox.classList.remove('hidden');
+                document.getElementById('displayCode').textContent = store.code;
+                
+                const currentVal = store.qty || 0;
+                document.getElementById('currentQty').textContent = currentVal;
+                document.getElementById('orderQty').value = currentVal > 0 ? currentVal : '';
+                document.getElementById('orderRemark').value = store.remark || '';
+            }
+        }
+
+        // --- COUNTDOWN FUNCTION ---
+        function startCountdown() {
+            const timerEl = document.getElementById('countdownTimer');
+            
+            const timerInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = deadlineDate.getTime() - now;
+
+                if (distance < 0) {
+                    clearInterval(timerInterval);
+                    timerEl.textContent = "EXPIRED";
+                    timerEl.className = "font-bold font-mono text-red-300 tracking-wide text-lg";
+                    document.getElementById('statusText').textContent = "Closed";
+                    document.getElementById('statusText').className = "text-red-600 font-bold";
+                    
+                    isExpired = true;
+                    document.getElementById('submitBtn').disabled = true;
+                    document.getElementById('submitBtn').classList.add('bg-gray-400', 'cursor-not-allowed');
+                    document.getElementById('submitBtn').innerHTML = 'หมดเวลาบันทึก';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timerEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        }
+
+        // --- FORM SUBMISSION ---
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            if (isExpired || (deadlineDate && new Date() > deadlineDate)) {
+                showAlert("หมดเวลา", "ไม่สามารถบันทึกได้เนื่องจากเกินกำหนดเวลาแล้ว", false);
+                return;
+            }
+
+            const storeCode = document.getElementById('storeSelect').value;
+            const newQty = parseInt(document.getElementById('orderQty').value) || 0;
+            const remark = document.getElementById('orderRemark').value;
+
+            if (!storeCode) { showAlert("แจ้งเตือน", "กรุณาเลือกสาขา", false); return; }
+
+            // ตรวจสอบ Total Limit
+            const limit = globalData.header.totalLimit;
+            const oldStoreData = globalData.stores.find(s => s.code === storeCode);
+            const oldQty = oldStoreData ? (parseInt(oldStoreData.qty) || 0) : 0;
+            const projectedTotal = (currentTotalAllStores - oldQty) + newQty;
+
+            if (limit && projectedTotal > limit) {
+                showAlert("ยอดเกินกำหนด (Over Limit)", 
+                    `ยอดรวมทั้งหมดจะกลายเป็น ${projectedTotal.toLocaleString()} ซึ่งเกินโควต้า (${limit.toLocaleString()})`, 
+                    false);
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `กำลังบันทึก...`;
+
+            const payload = { storeCode, qty: newQty, remark };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await res.json();
+
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                if (result.status === 'success') {
+                    showAlert("สำเร็จ", `บันทึกสาขา ${storeCode} จำนวน ${newQty} เรียบร้อย`, true);
+                    
+                    if(oldStoreData) {
+                        oldStoreData.qty = newQty;
+                        oldStoreData.remark = remark;
+                        oldStoreData.lastUpdate = result.timestamp || "Just now";
+                    }
+                    
+                    processStoreData(globalData.stores);
+                    document.getElementById('currentQty').textContent = newQty;
+
+                } else if (result.status === 'busy') {
+                     showAlert("ระบบยุ่ง", result.message, false);
+                } else {
+                     throw new Error(result.message);
+                }
+
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                showAlert("Error", "เกิดข้อผิดพลาด: " + err.message, false);
+            }
+        }
+
+        // --- UTILS ---
+        function showFatalError(title, msg) {
+            document.getElementById('loadingOverlay').innerHTML = `
+                <div class="text-center p-6">
+                    <div class="text-red-500 text-5xl mb-4">⚠️</div>
+                    <h1 class="text-2xl font-bold text-gray-800 mb-2">${title}</h1>
+                    <p class="text-gray-600">${msg}</p>
+                </div>
+            `;
+        }
+
+        function showAlert(title, msg, isSuccess) {
+            const modal = document.getElementById('alertModal');
+            const icon = document.getElementById('alertIcon');
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').innerText = msg;
+
+            if (isSuccess) {
+                icon.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-green-100 mb-4";
+                icon.innerHTML = `<svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+            } else {
+                icon.className = "mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4";
+                icon.innerHTML = `<svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+        
+        function toggleLogs() {
+            const container = document.getElementById('logContainer');
+            const arrow = document.getElementById('logArrow');
+            if(container.style.display === 'none') {
+                container.style.display = 'block';
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                container.style.display = 'none';
+                arrow.style.transform = 'rotate(-180deg)';
+            }
+        }
+        
+        function parseDate(dateStr) {
+            if(!dateStr) return new Date(0);
+            try {
+                const parts = dateStr.split(' ');
+                const dateParts = parts[0].split('/');
+                const timeParts = parts[1].split(':');
+                return new Date(dateParts[2], dateParts[1]-1, dateParts[0], timeParts[0], timeParts[1]);
+            } catch(e) { return new Date(); }
+        }
+    </script>
+</body>
+</html>
