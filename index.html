@@ -106,9 +106,9 @@
                 <table class="min-w-full text-xs text-left">
                     <thead class="bg-gray-100 text-gray-500 font-semibold border-b border-gray-200 sticky top-0 z-10">
                         <tr>
-                            <th class="px-6 py-2 text-left">Store</th>
-                            <th class="px-6 py-2 text-right">Push Order</th>
-                            <th class="px-6 py-2 text-right">Date/Time</th>
+                            <th class="px-6 py-1.5 text-left">Store</th>
+                            <th class="px-6 py-1.5 text-right">Push Order</th>
+                            <th class="px-6 py-1.5 text-right">Date/Time</th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody" class="divide-y divide-gray-100">
@@ -124,7 +124,7 @@
          <p class="text-xs text-gray-400 flex justify-center items-center gap-2">
             © 2025 Push Order App
             <span class="text-gray-300">|</span>
-            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.3</span>
+            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.4</span>
          </p>
     </footer>
 
@@ -252,9 +252,9 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 border-b border-gray-100 last:border-0 transition";
                 tr.innerHTML = `
-                    <td class="px-6 py-3 font-medium text-gray-800">${log.code} - ${log.name}</td>
-                    <td class="px-6 py-3 text-right font-bold text-red-600">${log.qty}</td>
-                    <td class="px-6 py-3 text-gray-500 text-right">${log.lastUpdate.split(' ')[1]}<br><span class="text-[10px]">${log.lastUpdate.split(' ')[0]}</span></td>
+                    <td class="px-6 py-1.5 font-medium text-gray-800">${log.code} - ${log.name}</td>
+                    <td class="px-6 py-1.5 text-right font-bold text-red-600">${log.qty}</td>
+                    <td class="px-6 py-1.5 text-gray-500 text-right">${log.lastUpdate.split(' ')[1]}<br><span class="text-[10px]">${log.lastUpdate.split(' ')[0]}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
