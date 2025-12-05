@@ -82,17 +82,17 @@
 
                 <div class="form-group">
                     <label class="block text-red-500 text-sm font-bold mb-2">Push Oder / ระบุจำนวน (DU/Inner)</label>
-                    <input type="number" id="orderQty" min="0" required class="w-full border border-gray-300 rounded py-3 px-4 text-gray-700 text-2xl font-bold text-center focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 placeholder-gray-300" placeholder="0">
+                    <input type="number" id="orderQty" min="0" required class="w-full border border-gray-300 rounded py-3 px-4 text-gray-700 text-xl font-bold text-center focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 placeholder-gray-300" placeholder="0">
                     <p class="text-center text-sm text-gray-500 mt-2 bg-gray-100 py-1 rounded" id="unitHelperText"></p>
                 </div>
 
                 <div class="form-group">
                     <label class="block text-red-500 text-sm font-bold mb-2">Remark / หมายเหตุ</label>
-                    <input type="text" id="orderRemark" class="w-full border border-gray-300 rounded py-2 px-4 text-gray-700 focus:outline-none focus:border-red-500" placeholder="ระบุชื่อผู้ดำเนินการ หรือข้อความเพิ่มเติม...">
+                    <input type="text" id="orderRemark" class="w-full border border-gray-300 rounded py-2 px-4 text-gray-700 focus:outline-none focus:border-red-500 text-sm" placeholder="ระบุชื่อผู้ดำเนินการ หรือข้อความเพิ่มเติม...">
                 </div>
 
                 <button type="submit" id="submitBtn" class="w-full theme-red hover:bg-red-700 text-white font-bold py-4 px-4 rounded shadow-lg transform transition active:scale-95 duration-200 mt-4 flex justify-center items-center">
-                    <span>SUBMIT</span>
+                    <span>Submit</span>
                 </button>
             </form>
         </div>
@@ -124,7 +124,7 @@
          <p class="text-xs text-gray-400 flex justify-center items-center gap-2">
             © 2025 Push Order App
             <span class="text-gray-300">|</span>
-            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.8</span>
+            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.10</span>
          </p>
     </footer>
 
@@ -153,7 +153,7 @@
             const urlPushID = urlParams.get('pushOrderID');
 
             if (!urlPushID) {
-                showFatalError("Push Order นี้จบแล้ว", "กรุณาติดต่อจัดซื้อ");
+                showFatalError("Push Order is closed", "Please cotract to buyer.");
                 return;
             }
 
@@ -172,14 +172,14 @@
                 // ตรวจสอบ Push Order ID
                 const sheetPushID = data.header.pushOrderId || ""; 
                 if (sheetPushID !== "" && String(sheetPushID).trim() !== String(urlPushID).trim()) {
-                    showFatalError("Push Order นี้จบแล้ว", "กรุณาติดต่อจัดซื้อ");
+                    showFatalError("Push Order is closed", "Please cotract to buyer.");
                     return;
                 }
 
                 renderSystem(data);
 
             } catch (error) {
-                showFatalError("เกิดข้อผิดพลาด", "ไม่สามารถดึงข้อมูลได้: " + error.message);
+                showFatalError("Error", "Failed to retrieve data. : " + error.message);
             }
         }
 
@@ -295,7 +295,7 @@
 
                 if (distance < 0) {
                     clearInterval(timerInterval);
-                    timerEl.textContent = "CLOSED";
+                    timerEl.textContent = "Closed";
                     timerEl.className = "text-yellow-300 tracking-wide";
                     document.getElementById('statusText').textContent = "Closed";
                     document.getElementById('statusText').className = "text-red-600 font-bold";
@@ -303,7 +303,7 @@
                     isExpired = true;
                     document.getElementById('submitBtn').disabled = true;
                     document.getElementById('submitBtn').classList.add('bg-gray-400', 'cursor-not-allowed');
-                    document.getElementById('submitBtn').innerHTML = 'CLOSED';
+                    document.getElementById('submitBtn').innerHTML = 'Closed';
                     return;
                 }
 
@@ -320,40 +320,40 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             
-            // ตรวจสอบ Deadline (เหมือนเดิม)
+            // ตรวจสอบ Deadline
             if (isExpired || (deadlineDate && new Date() > deadlineDate)) {
-                showAlert("หมดเวลา", "ไม่สามารถบันทึกได้เนื่องจากเกินกำหนดเวลาแล้ว", false);
+                showAlert("Expired", "Submission is closed due to deadline.", false);
                 return;
             }
-        
+
             const storeCode = document.getElementById('storeSelect').value;
             const newQty = parseInt(document.getElementById('orderQty').value) || 0;
             const remark = document.getElementById('orderRemark').value;
-        
+
             if (!storeCode) { showAlert("Warning", "Please Select Store", false); return; }
-        
-            // ตรวจสอบ Total Limit (เหมือนเดิม)
+
+            // ตรวจสอบ Total Limit
             const limit = globalData.header.totalLimit;
             const oldStoreData = globalData.stores.find(s => s.code === storeCode);
             const oldQty = oldStoreData ? (parseInt(oldStoreData.qty) || 0) : 0;
             const projectedTotal = (currentTotalAllStores - oldQty) + newQty;
-        
+
             if (limit && projectedTotal > limit) {
                 showAlert("Limit Exceeded", 
-                    `The total order will become ${projectedTotal.toLocaleString()} which exceeds the quota ${limit.toLocaleString()}`, 
+                    `The total order will become ${projectedTotal.toLocaleString()} which exceeds the quota (${limit.toLocaleString()})`, 
                     false);
                 return;
             }
-        
+
             const btn = document.getElementById('submitBtn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
             
-            // 🔥 แก้ตรงนี้: ใส่ SVG Spinner กลับเข้าไป
-            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังบันทึก...`;
-        
+            // 🔥 ใส่ SVG Spinner
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...`;
+
             const payload = { storeCode, qty: newQty, remark };
-        
+
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
@@ -361,12 +361,18 @@
                 });
                 
                 const result = await res.json();
-        
+
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-        
+
                 if (result.status === 'success') {
-                    showAlert("สำเร็จ", `บันทึกสาขา ${storeCode} จำนวน ${newQty} เรียบร้อย`, true);
+                    showAlert("Success", `Saved to store ${storeCode} push order = ${newQty}`, true);
+
+                    // === 🔥 NEW: เคลียร์ค่าเมื่อสำเร็จ ===
+                    document.getElementById('storeSelect').selectedIndex = 0; // เคลียร์ Dropdown
+                    document.getElementById('storeConfirmBox').classList.add('hidden'); // ซ่อนกล่องยืนยัน
+                    document.getElementById('orderQty').value = ''; // เคลียร์ช่องจำนวน
+                    document.getElementById('orderRemark').value = ''; // เคลียร์ช่อง Remark
                     
                     if(oldStoreData) {
                         oldStoreData.qty = newQty;
@@ -376,17 +382,17 @@
                     
                     processStoreData(globalData.stores);
                     document.getElementById('currentQty').textContent = newQty;
-        
+
                 } else if (result.status === 'busy') {
-                    showAlert("ระบบยุ่ง", result.message, false);
+                    showAlert("Server Busy", result.message, false);
                 } else {
-                    throw new Error(result.message);
+                    showAlert("Error", result.message, false);
                 }
-        
+
             } catch (err) {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                showAlert("Error", "เกิดข้อผิดพลาด: " + err.message, false);
+                showAlert("Error", "Network Error: " + err.message, false);
             }
         }
 
