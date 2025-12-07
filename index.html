@@ -124,7 +124,7 @@
          <p class="text-xs text-gray-400 flex justify-center items-center gap-2">
             © 2025 Push Order App
             <span class="text-gray-300">|</span>
-            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.10</span>
+            <span class="font-mono text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">v1.11</span>
          </p>
     </footer>
 
@@ -146,6 +146,7 @@
         let deadlineDate = null;
         let isExpired = false;
         let currentTotalAllStores = 0;
+        let sheetName = null;
 
         // --- 1. INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -156,13 +157,14 @@
                 showFatalError("Push Order is closed", "Please cotract to buyer.");
                 return;
             }
-
+            sheetName = urlPushID;
             fetchData(urlPushID);
         });
 
         async function fetchData(urlPushID) {
             try {
-                const response = await fetch(API_URL);
+                const apiWithSheetId = `${API_URL}?pushOrderID=${sheetName}`;
+                const response = await fetch(apiWithSheetId); 
                 const data = await response.json();
 
                 if (data.status !== 'success') throw new Error(data.message);
@@ -352,7 +354,12 @@
             // 🔥 ใส่ SVG Spinner
             btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...`;
 
-            const payload = { storeCode, qty: newQty, remark };
+            const payload = { 
+                storeCode, 
+                qty: newQty, 
+                remark, 
+                sheetName: sheetName
+            };
 
             try {
                 const res = await fetch(API_URL, {
